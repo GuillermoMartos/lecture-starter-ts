@@ -1,4 +1,5 @@
-import { OverwriteAPIResponse } from './constants';
+import { OverwriteAPIResponse, favoriteCardTemplate } from './constants';
+import { searchFavoriteMovieDetails } from './movie-searchs';
 import { MovieResultsResponse } from './types';
 
 function setLocalStoredFavoriteMovies(movieID: number) {
@@ -24,6 +25,14 @@ function getRequiredElement<T extends Element>(parent: Element | Document, selec
     return element;
 }
 
+function populateCardImg(posterPath: string | null) {
+    return posterPath ? `https://image.tmdb.org/t/p/original/${posterPath}` : OverwriteAPIResponse.NO_POSTER_AVAILABLE;
+}
+
+function populateCardDescription(overview: string) {
+    return overview === '' ? OverwriteAPIResponse.NO_DESCRPTION_MESSAGGE : overview;
+}
+
 function hydrateFavoriteHeartIcon(cardParent: Element, movieFavoriteHeart: HTMLImageElement, movieId: number) {
     const localStoragedMovies = localStorage.getItem('favoriteMovies');
     if (localStoragedMovies && JSON.parse(localStoragedMovies).includes(movieId)) {
@@ -44,6 +53,37 @@ function hydrateFavoriteHeartIcon(cardParent: Element, movieFavoriteHeart: HTMLI
     });
 }
 
+export function hydrateFavoriteMoviesList() {
+    const parentCardsElement = document.getElementById('favorite-movies');
+    if (parentCardsElement) {
+        parentCardsElement.innerHTML = '';
+        const localStoragedMovies = localStorage.getItem('favoriteMovies');
+        if (localStoragedMovies) {
+            const storedMoviesArray: number[] = JSON.parse(localStoragedMovies);
+            if (storedMoviesArray.length > 0) {
+                storedMoviesArray.forEach(async (favoriteMovie) => {
+                    const {
+                        release_date: releaseDate,
+                        overview,
+                        poster_path: posterPath,
+                    } = await searchFavoriteMovieDetails(favoriteMovie.toString());
+                    let customizedTemplate = favoriteCardTemplate.replace('{REPLACE_RELEASE_DATE}', releaseDate);
+                    customizedTemplate = customizedTemplate.replace('{REPLACE_IMG_SRC}', populateCardImg(posterPath));
+                    customizedTemplate = customizedTemplate.replace(
+                        '{REPLACE_DESCRIPTION}',
+                        populateCardDescription(overview)
+                    );
+                    const cardHTML = customizedTemplate;
+                    const cardElement = document.createElement('div');
+                    cardElement.innerHTML = cardHTML;
+                    // Agregar la tarjeta al contenedor
+                    parentCardsElement.appendChild(cardElement);
+                });
+            }
+        }
+    }
+}
+
 export function refreshDOMData(data: MovieResultsResponse[]) {
     const moviesContainer = document.querySelectorAll('.card');
     let extraRandomMovieIndex = 0;
@@ -55,10 +95,8 @@ export function refreshDOMData(data: MovieResultsResponse[]) {
         const movieReleased = getRequiredElement<HTMLElement>(card, '.text-muted');
         const movieFavoriteHeart = getRequiredElement<HTMLImageElement>(card, 'svg');
 
-        movieImg.src = posterPath
-            ? `https://image.tmdb.org/t/p/original/${posterPath}`
-            : OverwriteAPIResponse.NO_POSTER_AVAILABLE;
-        movieDescription.innerHTML = overview === '' ? OverwriteAPIResponse.NO_DESCRPTION_MESSAGGE : overview;
+        movieImg.src = populateCardImg(posterPath);
+        movieDescription.innerHTML = populateCardDescription(overview);
         movieReleased.innerHTML = releaseDate;
         hydrateFavoriteHeartIcon(card, movieFavoriteHeart, id);
         extraRandomMovieIndex = index + 1;
@@ -67,7 +105,7 @@ export function refreshDOMData(data: MovieResultsResponse[]) {
     const titleElement = getRequiredElement<HTMLElement>(randomMovieCard, 'h1');
     const overviewElement = getRequiredElement<HTMLElement>(randomMovieCard, 'p');
     titleElement.innerHTML = data[extraRandomMovieIndex].title;
-    overviewElement.innerHTML = data[extraRandomMovieIndex].overview;
+    overviewElement.innerHTML = populateCardDescription(data[extraRandomMovieIndex].overview);
     randomMovieCard.style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${data[extraRandomMovieIndex].poster_path})`;
 }
 

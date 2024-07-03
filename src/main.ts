@@ -10,7 +10,7 @@ import {
     searchUpcomingMovies,
     searchTopRatedMovies,
 } from '../api/movie-searchs';
-import { refreshDOMData, checkClickedInput } from '../api/utils';
+import { refreshDOMData, checkClickedInput, hydrateFavoriteMoviesList } from '../api/utils';
 
 export {
     searchMovieByName,
@@ -19,4 +19,5 @@ export {
     searchTopRatedMovies,
     refreshDOMData,
     checkClickedInput,
+    hydrateFavoriteMoviesList,
 };
