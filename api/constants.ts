@@ -15,6 +15,8 @@ export enum UrlsMap {
 export enum OverwriteAPIResponse {
     NO_DESCRPTION_MESSAGGE = 'No description availabe.',
     NO_POSTER_AVAILABLE = '/favicon.png',
+    NO_MOVIES_FOUND_DESCRIPTION = 'No more movies found.',
+    NO_MOVIES_FOUND_IMAGE = 'https://c0.klipartz.com/pngpicture/61/124/gratis-png-slowpoke-y-slowbro-slowboke-y-slowbro-shellder-pokemon-amarillo-pokemon.png',
 }
 
 export const mainCardMovieTemplate = `<div class="col-lg-3 col-md-4 col-12 p-2">

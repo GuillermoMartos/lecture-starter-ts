@@ -1,4 +1,4 @@
-import { OverwriteAPIResponse, favoriteCardTemplate } from './constants';
+import { OverwriteAPIResponse, favoriteCardTemplate, mainCardMovieTemplate } from './constants';
 import { searchFavoriteMovieDetails } from './movie-searchs';
 import { MovieResultsResponse } from './types';
 
@@ -85,28 +85,59 @@ export function hydrateFavoriteMoviesList() {
 }
 
 export function refreshDOMData(data: MovieResultsResponse[]) {
-    const moviesContainer = document.querySelectorAll('.card');
-    let extraRandomMovieIndex = 0;
-    moviesContainer.forEach((card, index) => {
-        const { release_date: releaseDate, overview, poster_path: posterPath, id } = data[index];
-        card.setAttribute('data-id', `${id}`);
-        const movieImg = getRequiredElement<HTMLImageElement>(card, 'img');
-        const movieDescription = getRequiredElement<HTMLElement>(card, '.card-text');
-        const movieReleased = getRequiredElement<HTMLElement>(card, '.text-muted');
-        const movieFavoriteHeart = getRequiredElement<HTMLImageElement>(card, 'svg');
-
-        movieImg.src = populateCardImg(posterPath);
-        movieDescription.innerHTML = populateCardDescription(overview);
-        movieReleased.innerHTML = releaseDate;
-        hydrateFavoriteHeartIcon(card, movieFavoriteHeart, id);
-        extraRandomMovieIndex = index + 1;
-    });
-    const randomMovieCard = getRequiredElement<HTMLElement>(document, '#random-movie');
-    const titleElement = getRequiredElement<HTMLElement>(randomMovieCard, 'h1');
-    const overviewElement = getRequiredElement<HTMLElement>(randomMovieCard, 'p');
-    titleElement.innerHTML = data[extraRandomMovieIndex].title;
-    overviewElement.innerHTML = populateCardDescription(data[extraRandomMovieIndex].overview);
-    randomMovieCard.style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${data[extraRandomMovieIndex].poster_path})`;
+    const restOfTheFilms = data.slice(0, -1);
+    const extraRandomMovieData = data.pop();
+    const parentCardsElement = document.getElementById('film-container');
+    if (restOfTheFilms.length > 0) {
+        if (extraRandomMovieData) {
+            const randomMovieCard = getRequiredElement<HTMLElement>(document, '#random-movie');
+            const titleElement = getRequiredElement<HTMLElement>(randomMovieCard, 'h1');
+            const overviewElement = getRequiredElement<HTMLElement>(randomMovieCard, 'p');
+            titleElement.innerHTML = extraRandomMovieData.title;
+            overviewElement.innerHTML = populateCardDescription(extraRandomMovieData.overview);
+            randomMovieCard.style.backgroundImage = populateCardImg(extraRandomMovieData.poster_path);
+        }
+        if (parentCardsElement) {
+            parentCardsElement.innerHTML = '';
+            restOfTheFilms.forEach((movie) => {
+                const { release_date: releaseDate, overview, poster_path: posterPath, id } = movie;
+                let customizedTemplate = mainCardMovieTemplate.replace('{REPLACE_RELEASE_DATE}', releaseDate);
+                customizedTemplate = customizedTemplate.replace('{REPLACE_IMG_SRC}', populateCardImg(posterPath));
+                customizedTemplate = customizedTemplate.replace(
+                    '{REPLACE_DESCRIPTION}',
+                    populateCardDescription(overview)
+                );
+                const cardHTML = customizedTemplate;
+                const temporalDivContainer = document.createElement('div');
+                temporalDivContainer.innerHTML = cardHTML;
+                const cardElement = temporalDivContainer.firstChild as HTMLElement;
+                if (cardElement) {
+                    cardElement.setAttribute('data-id', `${id}`);
+                    const movieFavoriteHeart = getRequiredElement<HTMLImageElement>(cardElement, 'svg');
+                    hydrateFavoriteHeartIcon(cardElement, movieFavoriteHeart, id);
+                    parentCardsElement.appendChild(cardElement);
+                }
+            });
+        }
+    } else {
+        if (!parentCardsElement) {
+            return;
+        }
+        parentCardsElement.innerHTML = '';
+        let customizedTemplate = mainCardMovieTemplate.replace('{REPLACE_RELEASE_DATE}', '');
+        customizedTemplate = customizedTemplate.replace(
+            '{REPLACE_IMG_SRC}',
+            OverwriteAPIResponse.NO_MOVIES_FOUND_IMAGE
+        );
+        customizedTemplate = customizedTemplate.replace(
+            '{REPLACE_DESCRIPTION}',
+            OverwriteAPIResponse.NO_MOVIES_FOUND_DESCRIPTION
+        );
+        const cardHTML = customizedTemplate;
+        const temporalDivContainer = document.createElement('div');
+        temporalDivContainer.innerHTML = cardHTML;
+        parentCardsElement.appendChild(temporalDivContainer);
+    }
 }
 
 export function checkClickedInput(event: Event): boolean {
