@@ -5,10 +5,10 @@ export const authorizationHeader = {
 };
 
 export enum UrlsMap {
-    GET_MOVIE_BY_NAME = 'https://api.themoviedb.org/3/search/movie?query={REPLACE_QUERY}&include_adult=false&language=en-US&page=1',
-    GET_POPULAR_MOVIES = 'https://api.themoviedb.org/3/movie/popular?language=en-US&page=1',
-    GET_UPCOMING_MOVIES = 'https://api.themoviedb.org/3/movie/upcoming?language=en-US&page=1',
-    GET_TOP_RATED_MOVIES = 'https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=1',
+    GET_MOVIE_BY_NAME = 'https://api.themoviedb.org/3/search/movie?query={REPLACE_QUERY}&include_adult=false&language=en-US&page={REPLACE_PAGE}',
+    GET_POPULAR_MOVIES = 'https://api.themoviedb.org/3/movie/popular?language=en-US&page={REPLACE_PAGE}',
+    GET_UPCOMING_MOVIES = 'https://api.themoviedb.org/3/movie/upcoming?language=en-US&page={REPLACE_PAGE}',
+    GET_TOP_RATED_MOVIES = 'https://api.themoviedb.org/3/movie/top_rated?language=en-US&page={REPLACE_PAGE}',
 }
 
 export enum OverwriteAPIResponse {

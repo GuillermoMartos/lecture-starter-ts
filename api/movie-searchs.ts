@@ -9,8 +9,9 @@ function isAPIErrorResponse(data: APIErrorResponse | APISuccessMovieResponse): d
     return 'status_message' in data;
 }
 
-export async function searchMovieByName(queryParam: string): Promise<MovieResultsResponse[]> {
-    const transformedURLQuery = UrlsMap.GET_MOVIE_BY_NAME.replace('{REPLACE_QUERY}', queryParam);
+export async function searchMovieByName(queryParam: string, pageParam = '1'): Promise<MovieResultsResponse[]> {
+    let transformedURLQuery = UrlsMap.GET_MOVIE_BY_NAME.replace('{REPLACE_QUERY}', queryParam);
+    transformedURLQuery = transformedURLQuery.replace('{REPLACE_PAGE}', pageParam);
     const response = await fetch(transformedURLQuery, {
         headers: { ...authorizationHeader },
         method: Methods.GET,
@@ -20,12 +21,12 @@ export async function searchMovieByName(queryParam: string): Promise<MovieResult
         throw new Error(JSON.stringify(data));
     }
 
-    console.log('la data loca1', data);
     return data.results;
 }
 
-export const searchPopularMovies = async (): Promise<MovieResultsResponse[]> => {
-    const response = await fetch(UrlsMap.GET_POPULAR_MOVIES, {
+export const searchPopularMovies = async (pageParam = '1'): Promise<MovieResultsResponse[]> => {
+    const transformedURLPage = UrlsMap.GET_POPULAR_MOVIES.replace('{REPLACE_PAGE}', pageParam);
+    const response = await fetch(transformedURLPage, {
         headers: { ...authorizationHeader },
         method: Methods.GET,
     });
@@ -37,8 +38,9 @@ export const searchPopularMovies = async (): Promise<MovieResultsResponse[]> => 
     return data.results;
 };
 
-export const searchUpcomingMovies = async (): Promise<MovieResultsResponse[]> => {
-    const response = await fetch(UrlsMap.GET_UPCOMING_MOVIES, {
+export const searchUpcomingMovies = async (pageParam = '1'): Promise<MovieResultsResponse[]> => {
+    const transformedURLPage = UrlsMap.GET_UPCOMING_MOVIES.replace('{REPLACE_PAGE}', pageParam);
+    const response = await fetch(transformedURLPage, {
         headers: { ...authorizationHeader },
         method: Methods.GET,
     });
@@ -50,8 +52,9 @@ export const searchUpcomingMovies = async (): Promise<MovieResultsResponse[]> =>
     return data.results;
 };
 
-export const searchTopRatedMovies = async (): Promise<MovieResultsResponse[]> => {
-    const response = await fetch(UrlsMap.GET_TOP_RATED_MOVIES, {
+export const searchTopRatedMovies = async (pageParam = '1'): Promise<MovieResultsResponse[]> => {
+    const transformedURLPage = UrlsMap.GET_TOP_RATED_MOVIES.replace('{REPLACE_PAGE}', pageParam);
+    const response = await fetch(transformedURLPage, {
         headers: { ...authorizationHeader },
         method: Methods.GET,
     });
