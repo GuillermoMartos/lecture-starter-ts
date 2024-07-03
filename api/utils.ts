@@ -84,7 +84,7 @@ export function hydrateFavoriteMoviesList() {
     }
 }
 
-export function refreshDOMData(data: MovieResultsResponse[]) {
+export function refreshDOMData(data: MovieResultsResponse[], clearPreviousCards = true) {
     const restOfTheFilms = data.slice(0, -1);
     const extraRandomMovieData = data.pop();
     const parentCardsElement = document.getElementById('film-container');
@@ -98,7 +98,9 @@ export function refreshDOMData(data: MovieResultsResponse[]) {
             randomMovieCard.style.backgroundImage = populateCardImg(extraRandomMovieData.poster_path);
         }
         if (parentCardsElement) {
-            parentCardsElement.innerHTML = '';
+            if (clearPreviousCards) {
+                parentCardsElement.innerHTML = '';
+            }
             restOfTheFilms.forEach((movie) => {
                 const { release_date: releaseDate, overview, poster_path: posterPath, id } = movie;
                 let customizedTemplate = mainCardMovieTemplate.replace('{REPLACE_RELEASE_DATE}', releaseDate);
@@ -123,7 +125,9 @@ export function refreshDOMData(data: MovieResultsResponse[]) {
         if (!parentCardsElement) {
             return;
         }
-        parentCardsElement.innerHTML = '';
+        if (clearPreviousCards) {
+            parentCardsElement.innerHTML = '';
+        }
         let customizedTemplate = mainCardMovieTemplate.replace('{REPLACE_RELEASE_DATE}', '');
         customizedTemplate = customizedTemplate.replace(
             '{REPLACE_IMG_SRC}',
@@ -148,7 +152,9 @@ export function checkClickedInput(event: Event): boolean {
     const isLastClickedElement = document.querySelector('.lastClicked');
     if (isLastClickedElement) {
         isLastClickedElement.classList.remove('lastClicked');
+        isLastClickedElement.removeAttribute('times-clicked');
     }
     target.classList.add('lastClicked');
+    target.setAttribute('times-clicked', '1');
     return false;
 }
