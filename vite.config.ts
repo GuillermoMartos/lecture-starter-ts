@@ -6,6 +6,9 @@ const config = () => {
             host: 'localhost',
             port: 8800,
         },
+        build: {
+            outDir: 'dist', // Asegúrate de que outDir esté configurado correctamente
+        },
     });
 };
 
