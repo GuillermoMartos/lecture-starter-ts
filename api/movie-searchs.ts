@@ -1,5 +1,12 @@
-import { APISuccessMovieResponse, APIErrorResponse, MovieResultsResponse } from './types';
+import {
+    APISuccessMovieResponse,
+    APIErrorResponse,
+    MovieResultsResponse,
+    FilteredAPIResponseResult,
+    APISuccessMovieDetailsResponse,
+} from './types';
 import { UrlsMap, authorizationHeader } from './constants';
+import { successAPIDataDetailsMovieResultsMapper, successAPIDataResultsMapper } from './mappers';
 
 enum Methods {
     GET = 'GET',
@@ -11,7 +18,7 @@ function isAPIErrorResponse(
     return 'status_message' in data;
 }
 
-export async function searchMovieByName(queryParam: string, pageParam = '1'): Promise<MovieResultsResponse[]> {
+export async function searchMovieByName(queryParam: string, pageParam = '1'): Promise<FilteredAPIResponseResult[]> {
     let transformedURLQuery = UrlsMap.GET_MOVIE_BY_NAME.replace('{REPLACE_QUERY}', queryParam);
     transformedURLQuery = transformedURLQuery.replace('{REPLACE_PAGE}', pageParam);
     const response = await fetch(transformedURLQuery, {
@@ -23,10 +30,10 @@ export async function searchMovieByName(queryParam: string, pageParam = '1'): Pr
         throw new Error(JSON.stringify(data));
     }
 
-    return data.results;
+    return successAPIDataResultsMapper(data);
 }
 
-export const searchPopularMovies = async (pageParam = '1'): Promise<MovieResultsResponse[]> => {
+export const searchPopularMovies = async (pageParam = '1'): Promise<FilteredAPIResponseResult[]> => {
     const transformedURLPage = UrlsMap.GET_POPULAR_MOVIES.replace('{REPLACE_PAGE}', pageParam);
     const response = await fetch(transformedURLPage, {
         headers: { ...authorizationHeader },
@@ -37,10 +44,10 @@ export const searchPopularMovies = async (pageParam = '1'): Promise<MovieResults
         throw new Error(JSON.stringify(data));
     }
 
-    return data.results;
+    return successAPIDataResultsMapper(data);
 };
 
-export const searchUpcomingMovies = async (pageParam = '1'): Promise<MovieResultsResponse[]> => {
+export const searchUpcomingMovies = async (pageParam = '1'): Promise<FilteredAPIResponseResult[]> => {
     const transformedURLPage = UrlsMap.GET_UPCOMING_MOVIES.replace('{REPLACE_PAGE}', pageParam);
     const response = await fetch(transformedURLPage, {
         headers: { ...authorizationHeader },
@@ -51,10 +58,10 @@ export const searchUpcomingMovies = async (pageParam = '1'): Promise<MovieResult
         throw new Error(JSON.stringify(data));
     }
 
-    return data.results;
+    return successAPIDataResultsMapper(data);
 };
 
-export const searchTopRatedMovies = async (pageParam = '1'): Promise<MovieResultsResponse[]> => {
+export const searchTopRatedMovies = async (pageParam = '1'): Promise<FilteredAPIResponseResult[]> => {
     const transformedURLPage = UrlsMap.GET_TOP_RATED_MOVIES.replace('{REPLACE_PAGE}', pageParam);
     const response = await fetch(transformedURLPage, {
         headers: { ...authorizationHeader },
@@ -65,19 +72,19 @@ export const searchTopRatedMovies = async (pageParam = '1'): Promise<MovieResult
         throw new Error(JSON.stringify(data));
     }
 
-    return data.results;
+    return successAPIDataResultsMapper(data);
 };
 
-export const searchFavoriteMovieDetails = async (movieId: string): Promise<MovieResultsResponse> => {
+export const searchFavoriteMovieDetails = async (movieId: string): Promise<FilteredAPIResponseResult> => {
     const transformedURLPage = UrlsMap.GET_FAVORITE_MOVIE_DETAILS.replace('{REPLACE_ID}', movieId);
     const response = await fetch(transformedURLPage, {
         headers: { ...authorizationHeader },
         method: Methods.GET,
     });
-    const data: APIErrorResponse | MovieResultsResponse = await response.json();
+    const data: APIErrorResponse | APISuccessMovieDetailsResponse = await response.json();
     if (isAPIErrorResponse(data)) {
         throw new Error(JSON.stringify(data));
     }
 
-    return data;
+    return successAPIDataDetailsMovieResultsMapper(data);
 };

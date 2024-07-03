@@ -100,6 +100,10 @@
             event.preventDefault()
             const queryWord = document.getElementById('search').value;
             if (queryWord) {
+                const isElementAlreadyClicked = checkClickedInput(event)
+                if (isElementAlreadyClicked) {
+                    return
+                }
                 const data = await searchMovieByName(queryWord)
                 refreshDOMData(data)
             }
@@ -163,6 +167,11 @@
                     break
                 case ("top_rated"):
                     refreshDOMData(await searchTopRatedMovies(increasedTimesClick), false)
+                    break
+                case ("search-submit"):
+                    const queryWord = document.getElementById('search').value;
+                    await
+                        refreshDOMData(await searchMovieByName(queryWord, increasedTimesClick), false)
                     break
                 default:
                     throw new Error('Cannot reach last clicked selector')

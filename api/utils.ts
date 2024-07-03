@@ -1,6 +1,6 @@
 import { OverwriteAPIResponse, favoriteCardTemplate, mainCardMovieTemplate } from './constants';
 import { searchFavoriteMovieDetails } from './movie-searchs';
-import { MovieResultsResponse } from './types';
+import { FilteredAPIResponseResult } from './types';
 
 function setLocalStoredFavoriteMovies(movieID: number) {
     const localStoragedMovies = localStorage.getItem('favoriteMovies');
@@ -62,11 +62,9 @@ export function hydrateFavoriteMoviesList() {
             const storedMoviesArray: number[] = JSON.parse(localStoragedMovies);
             if (storedMoviesArray.length > 0) {
                 storedMoviesArray.forEach(async (favoriteMovie) => {
-                    const {
-                        release_date: releaseDate,
-                        overview,
-                        poster_path: posterPath,
-                    } = await searchFavoriteMovieDetails(favoriteMovie.toString());
+                    const { releaseDate, overview, posterPath } = await searchFavoriteMovieDetails(
+                        favoriteMovie.toString()
+                    );
                     let customizedTemplate = favoriteCardTemplate.replace('{REPLACE_RELEASE_DATE}', releaseDate);
                     customizedTemplate = customizedTemplate.replace('{REPLACE_IMG_SRC}', populateCardImg(posterPath));
                     customizedTemplate = customizedTemplate.replace(
@@ -76,7 +74,6 @@ export function hydrateFavoriteMoviesList() {
                     const cardHTML = customizedTemplate;
                     const cardElement = document.createElement('div');
                     cardElement.innerHTML = cardHTML;
-                    // Agregar la tarjeta al contenedor
                     parentCardsElement.appendChild(cardElement);
                 });
             }
@@ -84,7 +81,11 @@ export function hydrateFavoriteMoviesList() {
     }
 }
 
-export function refreshDOMData(data: MovieResultsResponse[], clearPreviousCards = true) {
+/* 
+By default, refreshDOMData reset all cards to show new data retrieved... ic case of a LOAD MORE use, the clearPreviousCards
+parameter should be used in false. Check document.getElementById('load-more') event listener for more details.
+*/
+export function refreshDOMData(data: FilteredAPIResponseResult[], clearPreviousCards = true) {
     const restOfTheFilms = data.slice(0, -1);
     const extraRandomMovieData = data.pop();
     const parentCardsElement = document.getElementById('film-container');
@@ -95,35 +96,33 @@ export function refreshDOMData(data: MovieResultsResponse[], clearPreviousCards 
             const overviewElement = getRequiredElement<HTMLElement>(randomMovieCard, 'p');
             titleElement.innerHTML = extraRandomMovieData.title;
             overviewElement.innerHTML = populateCardDescription(extraRandomMovieData.overview);
-            randomMovieCard.style.backgroundImage = populateCardImg(extraRandomMovieData.poster_path);
+            randomMovieCard.style.backgroundImage = populateCardImg(extraRandomMovieData.posterPath);
         }
-        if (parentCardsElement) {
-            if (clearPreviousCards) {
-                parentCardsElement.innerHTML = '';
+        if (!parentCardsElement) {
+            throw new Error('Unexpected error finding cards parent element');
+        }
+        if (clearPreviousCards) {
+            parentCardsElement.innerHTML = '';
+        }
+        restOfTheFilms.forEach((movie) => {
+            const { releaseDate, overview, posterPath, id } = movie;
+            let customizedTemplate = mainCardMovieTemplate.replace('{REPLACE_RELEASE_DATE}', releaseDate);
+            customizedTemplate = customizedTemplate.replace('{REPLACE_IMG_SRC}', populateCardImg(posterPath));
+            customizedTemplate = customizedTemplate.replace('{REPLACE_DESCRIPTION}', populateCardDescription(overview));
+            const cardHTML = customizedTemplate;
+            const temporalDivContainer = document.createElement('div');
+            temporalDivContainer.innerHTML = cardHTML;
+            const cardElement = temporalDivContainer.firstChild as HTMLElement;
+            if (cardElement) {
+                cardElement.setAttribute('data-id', `${id}`);
+                const movieFavoriteHeart = getRequiredElement<HTMLImageElement>(cardElement, 'svg');
+                hydrateFavoriteHeartIcon(cardElement, movieFavoriteHeart, id);
+                parentCardsElement.appendChild(cardElement);
             }
-            restOfTheFilms.forEach((movie) => {
-                const { release_date: releaseDate, overview, poster_path: posterPath, id } = movie;
-                let customizedTemplate = mainCardMovieTemplate.replace('{REPLACE_RELEASE_DATE}', releaseDate);
-                customizedTemplate = customizedTemplate.replace('{REPLACE_IMG_SRC}', populateCardImg(posterPath));
-                customizedTemplate = customizedTemplate.replace(
-                    '{REPLACE_DESCRIPTION}',
-                    populateCardDescription(overview)
-                );
-                const cardHTML = customizedTemplate;
-                const temporalDivContainer = document.createElement('div');
-                temporalDivContainer.innerHTML = cardHTML;
-                const cardElement = temporalDivContainer.firstChild as HTMLElement;
-                if (cardElement) {
-                    cardElement.setAttribute('data-id', `${id}`);
-                    const movieFavoriteHeart = getRequiredElement<HTMLImageElement>(cardElement, 'svg');
-                    hydrateFavoriteHeartIcon(cardElement, movieFavoriteHeart, id);
-                    parentCardsElement.appendChild(cardElement);
-                }
-            });
-        }
+        });
     } else {
         if (!parentCardsElement) {
-            return;
+            throw new Error('Unexpected error finding cards parent element');
         }
         if (clearPreviousCards) {
             parentCardsElement.innerHTML = '';
@@ -140,7 +139,10 @@ export function refreshDOMData(data: MovieResultsResponse[], clearPreviousCards 
         const cardHTML = customizedTemplate;
         const temporalDivContainer = document.createElement('div');
         temporalDivContainer.innerHTML = cardHTML;
-        parentCardsElement.appendChild(temporalDivContainer);
+        const cardElement = temporalDivContainer.firstChild as HTMLElement;
+        if (cardElement) {
+            parentCardsElement.appendChild(cardElement);
+        }
     }
 }
 

@@ -27,3 +27,49 @@ export type APISuccessMovieResponse = {
     total_pages: number;
     total_results: number;
 };
+
+type ExtraDetailsMovieResultsAPIData = {
+    belongs_to_collection: {
+        id: number;
+        name: string;
+        poster_path: string;
+        backdrop_path: string;
+    };
+    budget: number;
+    genres: {
+        id: number;
+        name: string;
+    }[];
+    homepage: string;
+    imdb_id: string;
+    origin_country: [string, string];
+    production_companies: {
+        id: number;
+        logo_path: string;
+        name: string;
+        origin_country: string;
+    }[];
+    production_countries: {
+        iso_3166_1: string;
+        name: string;
+    }[];
+    revenue: number;
+    runtime: number;
+    spoken_languages: {
+        english_name: string;
+        iso_639_1: string;
+        name: string;
+    }[];
+    status: string;
+    tagline: string;
+};
+
+export type APISuccessMovieDetailsResponse = MovieResultsResponse & ExtraDetailsMovieResultsAPIData;
+
+export type FilteredAPIResponseResult = {
+    releaseDate: string;
+    title: string;
+    id: number;
+    posterPath: string | null;
+    overview: string;
+};
